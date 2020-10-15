@@ -1,0 +1,4 @@
+[caller_settings]
+config_name = \"dna_r9.4.1_450bps_hac\"
+host = \"127.0.0.1\"
+port = 5555
