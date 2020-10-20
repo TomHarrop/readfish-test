@@ -138,6 +138,7 @@ enable_relative_unblock_voltage = true
 unblock_voltage_gap = 480
 run_time = 172800 # (seconds) 1hr=3600
 start_bias_voltage = -180
+simulation = '/home/tom/Projects/readfish-test/data/PLSP57501_20170308_FNFAF14035_MN16458_sequencing_run_NOTT_Hum_wh1rs2_60428.fast5'
 # UI parameters
 translocation_speed_min = 300
 translocation_speed_max = 425

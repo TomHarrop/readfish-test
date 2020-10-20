@@ -1,10 +1,10 @@
 [caller_settings]
-config_name = "dna_r9.4.1_450bps_hac"
+config_name = "dna_r9.4.1_450bps_fast"
 host = "127.0.0.1"
-port = 5555
+port = 5557
 
 [conditions]
-reference = "/path/to/reference.mmi"
+reference = "data/reference.mmi"
 
 [conditions.0]
 name = "select_chr_21_22"

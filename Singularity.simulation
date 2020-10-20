@@ -1,8 +1,32 @@
 Bootstrap: localimage
-From: /home/tom/Containers/ont-containers/img/readfish_14ddf60.sif
+From: /home/tom/Containers/ont-containers/img/readfish_77c11e2.sif
 
 %files
+    toml/sequencing_MIN106_DNA.core4.toml /opt/ont/minknow/conf/package/sequencing/sequencing_MIN106_DNA.toml
 
-    toml/sequencing_MIN106_DNA.toml /opt/ont/minknow/conf/package/sequencing/sequencing_MIN106_DNA.toml
+%post
 
+    # install legacy guppy for minknow ***NOT WORKING***
+    # the server launches on the GPU but errors
+    # wget \
+    #     -O /guppy.tar.gz \
+    #     --no-check-certificate \
+    #     https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_4.2.2_linux64.tar.gz
+    # mkdir /guppy
+    # tar -zxf /guppy.tar.gz \
+    #     -C /guppy \
+    #     --strip-components 1
+    # rm -f /guppy.tar.gz
 
+    # configure minion to use gpu version of guppy
+    # it will only work with the exact same version of guppy as guppy core (in minknow -> about)
+    # see https://community.nanoporetech.com/posts/enabling-gpu-basecalling-f
+    # /opt/ont/minknow/bin/config_editor \
+    #     --conf application \
+    #     --filename /opt/ont/minknow/conf/app_conf \
+    #     --set guppy.server_executable="/guppy/bin/guppy_basecall_server" \
+    #     --set guppy.client_executable="/guppy/bin/guppy_basecaller" \
+    #     --set guppy.gpu_calling=1 \
+    #     --set guppy.num_threads=3 \
+    #     --set guppy.ipc_threads=2 \
+    #     --set guppy.gpu_devices="cuda:0"
