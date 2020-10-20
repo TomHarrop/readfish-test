@@ -5,7 +5,7 @@ exp_script_purpose = "sequencing_run"
 
 [meta.protocol]
 experiment_type = "sequencing"
-flow_cells = ["FLO-MIN106", "FLO-FLG001"]
+flow_cells = ["FLO-MIN106", "FLO-FLG001", "FLO-FLGOP1"]
 kits = [
     "SQK-16S024",
     "SQK-CAS109",
@@ -13,8 +13,10 @@ kits = [
     "SQK-LSK108",
     "SQK-LSK109",
     "SQK-LSK109-XL",
+    "SQK-LSK110",
     "SQK-RAD004",
     "SQK-RBK004",
+    "SQK-RBK096",
     "SQK-DCS108",
     "SQK-DCS109",
     "SQK-PCB109",
@@ -46,14 +48,15 @@ package = "bream4"
 experiment_type = "genomic_dna"
 
 [compatibility]
-minknow_core = "3.6"
-bream = "4.3.1"
+minknow_core = "4.0"
+bream = "6.0.0"
 
 
 [device]
 import = "shared/default_device_settings.toml"
 sample_rate = 4000
 unblock_voltage = -300
+
 
 [writer_configuration]
 import = "shared/default_writer.toml"
@@ -70,33 +73,44 @@ enable = false
 [basecaller_configuration.read_filtering]
 min_qscore = 7
 
+# Set via UI as there are no defaults known at build time
+# [basecaller_configuration.alignment_configuration]
+# reference_files = ["..."]
+# bed_file = ""
+
+# [basecaller_configuration.barcoding_configuration]
+# barcoding_kits = []
+# trim_barcodes = false
+# require_barcodes_both_ends = false
+# detect_mid_strand_barcodes = false
+# min_score = 60
+# min_score_rear = 60
+# min_score_mid = 60
+
 [analysis_configuration.read_detection]
 mode = "transition"
 minimum_delta_mean = 80.0
 look_back = 2
 break_reads_after_events = 250
 break_reads_after_seconds = 1.0
-break_reads_on_mux_changes = 1
+break_reads_on_mux_changes = true
 open_pore_min = 150.0
 open_pore_max = 250.0
 
 [analysis_configuration.read_classification]
 classification_strategy = "modal"
-selected_classifications = "strand"
+selected_classifications = ["strand"]
 scheme_module = "parsed"
 
 [analysis_configuration.read_classification.parameters]
-type = "ParsedParameters"
-
 rules_in_execution_order = [
-     "multiple=        (local_median,gt,350)&(local_median,lt,990)&(local_median_sd,gt,1.5)&(local_median_dwell,gt,0.005)",
+     "multiple=        (local_median,gt,350)&(local_median,lt,990)&(local_median_sd,gt,1.5)&(local_median_dwell,gt,0.005)&(duration,gt,0.02)",
      "pore_1=          (local_median,gt,160)&(local_median,lt,280)&(median_sd,gt,0.9)&(median_sd,lt,5)&(local_range,lt,35)&(duration,gt,15)",
      "pore=            (local_median,gt,160)&(local_median,lt,280)&(median_sd,gt,0.9)&(median_sd,lt,5)&(local_range,lt,35)",
-     "event=           (median_before,gt,160)&(median_before,lt,280)&(median_before,gt,median)&(median,lt,140)&(duration,lt,0.1)&(event_count,lt,20)",
+     "event=           (median_before,gt,160)&(median_before,lt,280)&(median_before,gt,median)&(median,lt,140)&(median,gt,20)&(duration,lt,0.1)&(event_count,lt,20)",
      "adapter=         (median_before,gt,160)&(median_before,lt,280)&(median,lt,120)&(median,gt,50)&(event_count,lt,120)&(event_count,gt,7)&(median_sd,gt,1)&(median_sd,lt,5)&(local_range,lt,75)&(duration,lt,1)",
      "strand=          (local_median,gt,50)&(local_median,lt,150)&(local_range,gt,20)&(local_range,lt,44)&(local_median_sd,gt,0.9)&(local_median_sd,lt,5)&(event_count,gt,119)&(local_median_dwell,lt,0.006)",
-     "strand1=         (local_median,gt,50)&(local_median,lt,150)&(local_range,gt,20)&(local_range,lt,44)&(local_median_sd,gt,0.9)&(local_median_sd,lt,5)&(event_count,gt,119)&(local_median_dwell,lt,0.1)",
-     "strand2=         (local_median,gt,50)&(local_median,lt,150)&(local_range,gt,10)&(local_range,lt,44)&(local_median_sd,gt,0.9)&(local_median_sd,lt,5)&(event_count,gt,119)&(local_median_dwell,lt,0.0075)",
+     "strand2=         (local_median,gt,50)&(local_median,lt,150)&(local_range,gt,5)&(local_range,lt,44)&(local_median_sd,gt,0.9)&(local_median_sd,lt,5)&(event_count,gt,119)&(local_median_dwell,lt,0.015)",
      "unavailable=     (local_median,gt,10)&(local_median,lt,250)&(local_median_sd,gt,0.6)",
      "zero=            (local_median,gt,-25)&(local_median,lt,10)",
      "unknown_positive=(local_median,gt,0)&(local_median,lt,999)",
@@ -114,16 +128,16 @@ max_mux_change_back_shift = 5
 [analysis_configuration.channel_states]
 import = "sequencing/sequencing_channel_states.toml"
 
+###############################
+# Sequencing Feature Settings #
+###############################
 
+# basic_settings #
 [custom_settings]
-run_time = 172800 # (seconds) 24hr=86400
-run_time_between_mux_scans = 5400 # (seconds) 4hr=14400
+enable_relative_unblock_voltage = true
+unblock_voltage_gap = 480
+run_time = 172800 # (seconds) 1hr=3600
 start_bias_voltage = -180
-simulation = '/home/tom/Projects/readfish-test/data/PLSP57501_20170308_FNFAF14035_MN16458_sequencing_run_NOTT_Hum_wh1rs2_60428.fast5'
-
-# mux scan voltage control
-minimum_voltage_adjustment = -5
-
 # UI parameters
 translocation_speed_min = 300
 translocation_speed_max = 425
@@ -138,40 +152,28 @@ min_stable_duration = 15 # Seconds
 [custom_settings.temperature.flongle]
 target = 35.0
 
+#-------- Channel States Disable ---------#
 
-[custom_settings.mux_scan]
-threshold = 2.5 # 2.5 seconds of time in well must be pore/strand/adapter to be eligible to be picked
-collection_time_per_well = 10
-enabled = true
-percentile_cut_off = 25
-filter_percentile = false
-
-[custom_settings.mux_scan_progressive_unblock]
+[custom_settings.channel_states_disable]
+states_to_disable = ['multiple', 'saturated']
 enabled = true
 
-# A flick tier would go (flick for x seconds, rest for y seconds) * repeats
-flick_duration = [ 0.1, 2.0, 10.0, 30.0 ]
-rest_duration  = [   3,   3,   15, 30   ]
-repeats        = [   1,   1,    4,  4   ]
-
-states_to_flick = ['unavailable'] # When see this, flick
-states_to_reset = ['strand', 'pore', 'adapter' , 'event', 'locked'] # If any of these appear 'reset' the channel so it starts again
-
-change_mux_after_last_tier = true # Feeds into group_manager. If this is true the channel is flagged to be replaced by group manager
-
-
+#-------- Group Manager ---------#
 
 [custom_settings.group_manager]
 # If this is true, and a channel becomes disabled/locked then swap the channel for another well if possible
 swap_out_disabled_channels = true
-
-# How many muxes to include per channel, if possible. Only applies if swap_out_disabled_channels is False
-limit_mux_per_channel = 3
-
-
-[custom_settings.global_mux_change]
+# If this is True then when the groups determined by the mux scan reach the final mux it will loop back around to the
+# first group. If this is disabled, once the groups have reached the last tier the channel will be disabled until the
+# groups are refreshed, (by say another mux scan)
+cycle_groups = false
+# How many muxes to include per channel, if possible. Only applies if cycle_groups is true
+cycle_limit_per_channel = 3
+[custom_settings.group_manager.global_mux_change]
 interval = 28800 # (seconds)
 enabled = false
+
+#-------- Global Flicks ---------#
 
 [custom_settings.global_flick]
 enabled = false
@@ -179,12 +181,14 @@ enabled = false
 interval = 3600 # Timing between flicks (in seconds)
 
 # voltage, pause, voltage, pause, voltage, pause
-voltages = [0, 120, 0]
-adjustment_pause = [1.0, 3.0, 1.0]
+perform_relative_flick = true
+rest_voltage = 0
+rest_duration = 1.0
+flick_duration = 3.0
+voltage_gap = 300
 
-[custom_settings.global_flick.flongle]
-enabled = true # Problem with unblock_voltage through adapter
 
+#-------- Progressive Unblock ---------#
 
 [custom_settings.progressive_unblock]
 enabled = true
@@ -195,36 +199,34 @@ rest_duration  = [   3,   3,   15, 30   ]
 repeats        = [   1,   1,    4,  4   ]
 
 states_to_flick = ['unavailable', 'zero'] # When see this, flick
-states_to_reset = ['strand', 'pore', 'adapter' , 'event', 'locked'] # If any of these appear 'reset' the channel so it starts again
+states_to_reset = ['strand', 'pore', 'adapter' , 'event', 'locked', 'disabled'] # If any of these appear 'reset' the channel so it starts again
 
 change_mux_after_last_tier = true # Feeds into group_manager. If this is true the channel is flagged to be replaced by group manager
 
 [custom_settings.progressive_unblock.flongle]
 rest_duration = [ 3, 3, 15, 300 ]
 
+#-------- Drift Correction ---------#
 
 [custom_settings.drift_correction]
 enabled = true
 
 interval = 600 # Try to correct this often (seconds)
 
-setpoint = 32.0 # Try to keep (q90-q10) range close to this value (in pA)
+setpoint = 30.0 # Try to keep (q90-q10) range close to this value (in pA)
 
 channels_threshold = 50 # This many channels need to have classification to count
 classification = "strand" # Use this as the source
 
 ### Small adjustment
-threshold = 0.8 # if average of observed medians is outside setpoint +/- threshold then adjust
-adjust_value = 5 # Adjust by this much
-
-### Larger adjustment
-intense_threshold = 1.6 # If average of observed medians outside setpoint by +/- then adjust more intensely
-intense_adjust_value = 10 # Adjust by this much
+lower_threshold = 0.8 # if average of observed medians is below the setpoint by this threshold then adjust
+upper_threshold = 1.5 # if average of observed medians is above the setpoint by this threshold then adjust
+initial_pA_adjustment_per_minimum_voltage_adjustment = 1
 
 ewma_factor = 0.3 # exponentially weighted moving average weight factor. Closer to 1 == weight newest information more
 
 voltage_fallback = -250 # Once voltage goes outside this, use fallback static
-voltage_fallback_interval = 5400 # If not corrected in this long (seconds), or in fallback, adjust by adjust_value
+voltage_fallback_interval = 5400 # If not corrected in this long (seconds), or in fallback, adjust by the minimum_voltage_adjustment
 
 # Don't go out of these limits
 voltage_max = -170
@@ -233,24 +235,47 @@ voltage_min = -250
 [custom_settings.drift_correction.flongle]
 channels_threshold = 5 # A lot less channels to work with
 
-
-
-
 [custom_settings.static_drift_correction]
 enabled = false
 
 interval = 5400 # Correct this often (seconds)
-adjust_value = 5
 voltage_max = -170
 voltage_min = -250
 
-[custom_settings.channel_states_disable]
-states_to_disable = ['multiple', 'saturated']
+############
+# Mux Scan #
+############
+
+[custom_settings.mux_scan]
+threshold = 2.5 # 2.5 seconds of time in well must be pore/strand/adapter to be eligible to be picked
+collection_time_per_well = 10
+enabled = true
+percentile_cut_off = 25
+filter_percentile = false
+interval = 5400 # (seconds) 1hr=3600
+
+[custom_settings.mux_scan.global_flick]
+enabled = true
+# voltage, pause, voltage, pause, voltage, pause
+perform_relative_flick = true
+rest_voltage = 0
+rest_duration = 1.0
+flick_duration = 3.0
+voltage_gap = 300
+
+[custom_settings.mux_scan_progressive_unblock]
 enabled = true
 
-# Feeds into group_manager. If this is true and if a channel enters
-# a states_to_disable the group manger will try and replace it for another mux
-change_mux_on_disable = true
+# A flick tier would go (flick for x seconds, rest for y seconds) * repeats
+flick_duration = [ 0.1, 2.0, 10.0, 30.0 ]
+rest_duration  = [   3,   3,   15, 30   ]
+repeats        = [   1,   1,    4,  4   ]
+
+states_to_flick = ['unavailable'] # When see this, flick
+states_to_reset = ['strand', 'pore', 'adapter' , 'event', 'locked', 'disabled'] # If any of these appear 'reset' the channel so it starts again
+
+change_mux_after_last_tier = true # Feeds into group_manager. If this is true the channel is flagged to be replaced by group manager
+
 
 #####################
 # Channel Wind Down #
@@ -260,20 +285,17 @@ change_mux_on_disable = true
 timeout = 60
 enabled = true
 
-[custom_settings.channel_wind_down_channel_states_disable]
+[custom_settings.channel_wind_down.channel_states_disable]
 states_to_disable = ['pore', 'saturated', 'multiple', 'unknown_negative', 'unknown_positive', 'zero']
 enabled = true
 stop_feature_manage_enabled = true
 min_channel_threshold = 10
 active_states = ['strand']
-# Feeds into group_manager. If this is true and if a channel enters
-# a states_to_disable the group manger will try and replace it for another mux
-change_mux_on_disable = false
 
-[custom_settings.channel_wind_down_channel_states_disable.flongle]
+[custom_settings.channel_wind_down.channel_states_disable.flongle]
 min_channel_threshold = 2
 
-[custom_settings.channel_wind_down_progressive_unblock]
+[custom_settings.channel_wind_down.progressive_unblock]
 enabled = true
 
 # A flick tier would go (flick for x seconds, rest for y seconds) * repeats
@@ -282,6 +304,6 @@ rest_duration  = [   3,   3,   3, 3   ]
 repeats        = [   1,   1,    4,  4   ]
 
 states_to_flick = ['unavailable', 'zero'] # When see this, flick
-states_to_reset = ['strand', 'pore', 'adapter' , 'event', 'locked'] # If any of these appear 'reset' the channel so it starts again
+states_to_reset = ['strand', 'pore', 'adapter' , 'event', 'locked', 'disabled'] # If any of these appear 'reset' the channel so it starts again
 
 change_mux_after_last_tier = true # Feeds into group_manager. If this is true the channel is flagged to be replaced by group manager

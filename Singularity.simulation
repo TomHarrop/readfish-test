@@ -1,0 +1,8 @@
+Bootstrap: localimage
+From: /home/tom/Containers/ont-containers/img/readfish_14ddf60.sif
+
+%files
+
+    toml/sequencing_MIN106_DNA.toml /opt/ont/minknow/conf/package/sequencing/sequencing_MIN106_DNA.toml
+
+
