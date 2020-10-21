@@ -72,6 +72,8 @@ cat /opt/ont/minknow/conf/package/sequencing/sequencing_MIN106_DNA.toml
 
 # start run in minknow (can leave basecalling off)
 
+
+
 # TEST UNBLOCK
 # WORKS in ubuntu 18.04 image with readfish 77c11e2
 readfish unblock-all \
@@ -157,3 +159,28 @@ readfish targets \
 # 2020-10-20 16:38:11,809 ru.ru_gen 50R/0.31448s
 # 2020-10-20 16:38:12,096 ru.ru_gen 28R/0.20125s
 # 2020-10-20 16:38:12,627 ru.ru_gen 55R/0.33121s
+
+
+# basecall the reads (from outside)
+singularity exec \
+    --nv \
+    simulation.sif \
+    guppy_basecaller_supervisor \
+    --port 5557 \
+    --num_clients 5 \
+    --input_path tmp/var/lib/minknow/data/RU_Test_basecall_and_map/NOTT_Hum_wh1rs2_60428/ \
+    --save_path "basecalled/RU_Test_basecall_and_map" \
+    --flowcell "FLO-MIN106" \
+    --kit "SQK-LSK109" \
+    --verbose_logs \
+    --recursive \
+    --trim_strategy dna \
+    --qscore_filtering 
+
+singularity exec \
+    --nv \
+    -B tmp/var:/var,tmp/run:/run \
+    simulation.sif \
+    readfish summary \
+    toml/human_chr_selection.toml \
+    basecalled/RU_Test_basecall_and_map
