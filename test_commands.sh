@@ -184,3 +184,30 @@ singularity exec \
     readfish summary \
     toml/human_chr_selection.toml \
     basecalled/RU_Test_basecall_and_map
+
+# 1 GB singularity overlay?
+# THIS WORKS
+mkdir -p overlay/upper overlay/work
+dd if=/dev/zero of=overlay.img bs=1M count=1000
+mkfs.ext3 -d overlay overlay.img
+singularity shell \
+    --nv \
+    --overlay overlay.img \
+    -B tmp/var:/var,tmp/run:/run \
+    readfish_77c11e2.sif
+
+# put the modified TOML in place
+cp toml/sequencing_MIN106_DNA.core4.toml \
+    /opt/ont/minknow/conf/package/sequencing/sequencing_MIN106_DNA.toml
+
+# restore ONT's copy
+cp toml/sequencing_MIN106_DNA.ont_default.toml \
+    /opt/ont/minknow/conf/package/sequencing/sequencing_MIN106_DNA.toml
+
+# is it the pycache directory? dunno, it's not there when running without
+# persistent overlay
+singularity shell \
+    --nv \
+    --writable-tmpfs \
+    -B tmp/var:/var,tmp/run:/run \
+    readfish_77c11e2.sif
